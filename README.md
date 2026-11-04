@@ -9,67 +9,73 @@ Spring Boot 3 + Java 21 + Maven 3.9 后端，国风水墨 UI 前端。
 - Spring Boot 3.2.5
 - 前端：HTML / CSS / JavaScript（Canvas 粒子特效）
 
-## 本地开发
+## 服务器部署全流程
 
-### 1. 构建项目
+### 前提条件
 
-```bash
-mvn clean package -DskipTests
-```
+服务器已安装 **JDK 21** 和 **Maven 3.9+**，视频文件已上传到 `/opt/video/liangzhu.mp4`。
 
-### 2. 上传视频文件
-
-视频文件不打包进 jar，放在外部目录。默认目录 `G:/video/`。
-
-视频文件命名规则：`{name}.mp4`，对应 API 接口 `/api/video/{name}`。
-例如 `liangzhu.mp4` → 访问 `/api/video/liangzhu`。
-
-### 3. 启动
+### 第 1 步：拉取代码
 
 ```bash
-java -jar target/music-app-1.0.0.jar
-```
-
-启动后访问 http://localhost:9000
-
-## 服务器部署
-
-### 1. 拉取代码
-
-```bash
+cd /opt
 git clone https://github.com/JasonR-student/music-app.git
 cd music-app
 ```
 
-### 2. 构建项目
+### 第 2 步：构建
 
 ```bash
 mvn clean package -DskipTests
 ```
 
-### 3. 创建视频目录并上传视频
+### 第 3 步：确认视频文件就位
 
+```bash
+ls -lh /opt/video/liangzhu.mp4
+```
+
+如果文件不在，手动上传：
 ```bash
 mkdir -p /opt/video
-# 用 scp/sftp 将 liangzhu.mp4 上传到 /opt/video/
-# scp liangzhu.mp4 user@server:/opt/video/
+# 在本地机器执行 scp 上传：
+scp 梁祝.mp4 user@服务器IP:/opt/video/liangzhu.mp4
 ```
 
-### 4. 启动（指定视频目录和端口）
+### 第 4 步：启动
 
+前台运行（测试用，关掉终端就停）：
 ```bash
-java -jar target/music-app-1.0.0.jar \
-  --video.storage-dir=/opt/video \
-  --server.port=9000
+java -jar target/music-app-1.0.0.jar
 ```
 
-### 5. 后台运行（推荐用 nohup）
+后台运行（生产环境推荐）：
+```bash
+nohup java -jar target/music-app-1.0.0.jar > /opt/music-app/app.log 2>&1 &
+```
+
+### 第 5 步：验证
 
 ```bash
-nohup java -jar target/music-app-1.0.0.jar \
-  --video.storage-dir=/opt/video \
-  --server.port=9000 \
-  > app.log 2>&1 &
+# 看日志是否启动成功
+tail -f /opt/music-app/app.log
+
+# 测试首页
+curl http://localhost:9000
+
+# 测试视频接口（应返回 206）
+curl -I --range 0-1023 http://localhost:9000/api/video/liangzhu
+```
+
+浏览器访问 `http://服务器IP:9000`
+
+### 第 6 步：停止服务
+
+```bash
+# 找到进程
+ps aux | grep music-app
+# 杀掉
+kill <PID>
 ```
 
 ## 配置说明
@@ -77,9 +83,15 @@ nohup java -jar target/music-app-1.0.0.jar \
 | 配置项 | 默认值 | 说明 |
 |--------|--------|------|
 | `server.port` | 9000 | 服务端口 |
-| `video.storage-dir` | G:/video | 视频文件存储目录 |
+| `video.storage-dir` | /opt/video | 视频文件存储目录 |
 
-所有配置均可通过 `application.yml` 或命令行参数 `--key=value` 覆盖。
+视频文件命名规则：`{name}.mp4` → API 接口 `/api/video/{name}`。
+例如 `liangzhu.mp4` → `/api/video/liangzhu`。
+
+如需修改配置，启动时加参数：
+```bash
+java -jar target/music-app-1.0.0.jar --server.port=8080 --video.storage-dir=/data/video
+```
 
 ## API 接口
 
@@ -88,3 +100,11 @@ nohup java -jar target/music-app-1.0.0.jar \
 | `GET /` | 首页 |
 | `GET /player.html` | 视频播放页 |
 | `GET /api/video/{name}` | 视频流（支持 HTTP Range 分段请求） |
+
+## 本地开发（Windows）
+
+```bash
+mvn clean package -DskipTests
+# 本地开发时视频在 G:/video，覆盖配置即可：
+java -jar target/music-app-1.0.0.jar --video.storage-dir=G:/video
+```
