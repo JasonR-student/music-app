@@ -13,6 +13,11 @@ spring:
       max-file-size: 500MB
       max-request-size: 500MB
 
-# 视频文件外部存储目录（不打包进jar）
+# 视频文件外部存储目录（不打包进jar，单独上传到服务器此目录）
+# 视频文件命名规则：{name}.mp4，对应API接口 /api/video/{name}
+# 例如 liangzhu.mp4 → /api/video/liangzhu
+#
+# 服务器部署时可用命令行参数覆盖：
+# java -jar app.jar --video.storage-dir=/opt/video
 video:
   storage-dir: G:/video
