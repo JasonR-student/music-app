@@ -17,7 +17,7 @@ spring:
 # 视频文件命名规则：{name}.mp4，对应API接口 /api/video/{name}
 # 例如 liangzhu.mp4 → /api/video/liangzhu
 #
-# 服务器部署时可用命令行参数覆盖：
-# java -jar app.jar --video.storage-dir=/opt/video
+# 默认路径 /opt/video 适用于 Linux 服务器
+# Windows 开发时可命令行覆盖：--video.storage-dir=G:/video
 video:
-  storage-dir: G:/video
+  storage-dir: /opt/video
