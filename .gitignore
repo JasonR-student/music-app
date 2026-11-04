@@ -1,0 +1,24 @@
+# 构建产物
+target/
+
+# IDE
+.idea/
+*.iml
+.vscode/
+.settings/
+.classpath
+.project
+
+# 大视频文件（不提交到git，存外部目录）
+media/*.mp4
+*.mp4
+
+# 系统文件
+.DS_Store
+Thumbs.db
+
+# 日志
+*.log
+
+# WorkBuddy
+.workbuddy-ai/

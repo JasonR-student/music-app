@@ -1,0 +1,18 @@
+server:
+  port: 9000
+  servlet:
+    encoding:
+      charset: UTF-8
+      force: true
+
+spring:
+  application:
+    name: music-app
+  servlet:
+    multipart:
+      max-file-size: 500MB
+      max-request-size: 500MB
+
+# 视频文件外部存储目录（不打包进jar）
+video:
+  storage-dir: G:/video
