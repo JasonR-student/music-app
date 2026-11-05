@@ -437,6 +437,185 @@ body{
 }
 .analysis-list b{color:var(--gold-l);}
 
+/* ===================================================
+   「乐见」可视化翻译系统样式
+   =================================================== */
+
+/* 可视化画布（覆盖在视频上方） */
+.viz-canvas{
+  position:fixed;inset:0;z-index:50;
+  pointer-events:none;
+  opacity:0;
+  transition:opacity 0.8s ease;
+}
+.viz-canvas.viz-active{
+  opacity:1;
+}
+
+/* 叙事字幕区 */
+.narrative-overlay{
+  position:fixed;
+  bottom:0;left:0;right:0;
+  z-index:60;
+  pointer-events:none;
+  padding:40px 24px 30px;
+  background:linear-gradient(to top, rgba(19,17,16,0.95) 0%, rgba(19,17,16,0.7) 60%, transparent 100%);
+  opacity:0;
+  transform:translateY(20px);
+  transition:opacity 0.6s ease, transform 0.6s ease;
+}
+.narrative-overlay.narrative-active{
+  opacity:1;
+  transform:translateY(0);
+}
+.narrative-content{
+  max-width:800px;
+  margin:0 auto;
+  text-align:center;
+}
+.narrative-title{
+  font-size:24px;
+  letter-spacing:6px;
+  color:var(--gold-l, #d4b27a);
+  margin-bottom:8px;
+  font-weight:400;
+  transition:color 0.5s ease;
+}
+.narrative-subtitle{
+  font-size:15px;
+  letter-spacing:3px;
+  color:rgba(245,236,214,0.7);
+  margin-bottom:12px;
+}
+.narrative-story{
+  font-size:16px;
+  line-height:2;
+  letter-spacing:2px;
+  color:rgba(245,236,214,0.9);
+  max-width:600px;
+  margin:0 auto 12px;
+}
+.narrative-emotion{
+  display:inline-block;
+  font-size:13px;
+  letter-spacing:4px;
+  padding:4px 16px;
+  border:1px solid rgba(184,147,90,0.3);
+  border-radius:20px;
+  color:var(--gold-l, #d4b27a);
+  transition:color 0.5s ease, border-color 0.5s ease;
+}
+
+/* 叙事动画 */
+.narrative-fade-out{
+  opacity:0 !important;
+  transform:translateY(10px) !important;
+  transition:opacity 0.3s ease, transform 0.3s ease !important;
+}
+.narrative-fade-in{
+  opacity:1 !important;
+  transform:translateY(0) !important;
+  transition:opacity 0.5s ease 0.1s, transform 0.5s ease 0.1s !important;
+}
+
+/* 乐见工具栏 */
+.yuejian-toolbar{
+  position:fixed;
+  top:20px;right:20px;
+  z-index:100;
+  display:flex;
+  align-items:center;
+  gap:8px;
+  padding:8px 12px;
+  background:rgba(19,17,16,0.85);
+  backdrop-filter:blur(12px);
+  border:1px solid rgba(184,147,90,0.2);
+  border-radius:24px;
+  box-shadow:0 4px 20px rgba(0,0,0,0.3);
+}
+.yj-btn{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  padding:6px 12px;
+  background:transparent;
+  border:1px solid rgba(184,147,90,0.3);
+  border-radius:16px;
+  color:rgba(245,236,214,0.7);
+  font-size:13px;
+  letter-spacing:2px;
+  cursor:pointer;
+  transition:all 0.3s ease;
+  font-family:inherit;
+}
+.yj-btn:hover{
+  background:rgba(184,147,90,0.1);
+  border-color:rgba(184,147,90,0.5);
+  color:var(--gold-l, #d4b27a);
+}
+.yj-btn.yj-active{
+  background:rgba(168,50,46,0.2);
+  border-color:rgba(168,50,46,0.5);
+  color:#e8a0a0;
+}
+.yj-btn svg{
+  flex-shrink:0;
+}
+.yj-status{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  padding:0 8px;
+  font-size:12px;
+  letter-spacing:1px;
+  color:rgba(245,236,214,0.5);
+}
+.yj-dot{
+  width:6px;height:6px;
+  border-radius:50%;
+  background:rgba(245,236,214,0.3);
+  transition:background 0.3s ease;
+}
+.yj-dot.yj-dot-active{
+  background:#7ab648;
+  box-shadow:0 0 6px rgba(122,182,72,0.6);
+  animation:yjPulse 2s ease-in-out infinite;
+}
+@keyframes yjPulse{
+  0%,100%{opacity:1;}
+  50%{opacity:0.5;}
+}
+
+/* 乐见激活时隐藏原有粒子画布 */
+.viz-canvas.viz-active ~ .ink-canvas{
+  opacity:0.3;
+}
+
+/* 响应式调整 */
+@media(max-width:640px){
+  .yuejian-toolbar{
+    top:auto;bottom:120px;right:12px;
+    flex-direction:column;
+    padding:6px 10px;
+  }
+  .narrative-overlay{
+    padding:30px 16px 20px;
+  }
+  .narrative-title{
+    font-size:20px;letter-spacing:4px;
+  }
+  .narrative-story{
+    font-size:14px;
+  }
+  .narrative-emotion{
+    font-size:12px;
+  }
+}
+
+/* ===================================================
+   原有响应式样式
+   =================================================== */
+
 /* ===== 响应式 ===== */
 @media(max-width:900px){
   .navbar{padding:14px 20px;}

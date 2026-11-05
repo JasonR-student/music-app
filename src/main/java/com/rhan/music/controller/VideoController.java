@@ -71,21 +71,48 @@ public class VideoController {
 
         long contentLength = end - start + 1;
 
-        // 用 RandomAccessFile 读取指定区间
-        RandomAccessFile raf = new RandomAccessFile(videoFile, "r");
-        raf.seek(start);
-
-        byte[] buffer = new byte[(int) Math.min(contentLength, 1024 * 1024)];
-        raf.read(buffer);
-        raf.close();
-
+        // 使用 InputStreamResource 流式传输，避免大文件内存问题
         HttpHeaders headers = new HttpHeaders();
         headers.add(HttpHeaders.CONTENT_TYPE, "video/mp4");
         headers.add(HttpHeaders.ACCEPT_RANGES, "bytes");
         headers.add(HttpHeaders.CONTENT_RANGE, "bytes " + start + "-" + end + "/" + fileLength);
         headers.setContentLength(contentLength);
 
-        ByteArrayResource byteArrayResource = new ByteArrayResource(buffer);
-        return new ResponseEntity<>(byteArrayResource, headers, HttpStatus.PARTIAL_CONTENT);
+        // 创建一个只读取指定区间的 InputStream
+        java.io.InputStream inputStream = new java.io.InputStream() {
+            private final RandomAccessFile raf;
+            private long remaining;
+            {
+                try {
+                    raf = new RandomAccessFile(videoFile, "r");
+                    raf.seek(start);
+                    remaining = contentLength;
+                } catch (java.io.IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+            @Override
+            public int read() throws java.io.IOException {
+                if (remaining <= 0) return -1;
+                int b = raf.read();
+                if (b >= 0) remaining--;
+                return b;
+            }
+            @Override
+            public int read(byte[] b, int off, int len) throws java.io.IOException {
+                if (remaining <= 0) return -1;
+                int toRead = (int) Math.min(len, remaining);
+                int read = raf.read(b, off, toRead);
+                if (read > 0) remaining -= read;
+                return read;
+            }
+            @Override
+            public void close() throws java.io.IOException {
+                raf.close();
+            }
+        };
+
+        org.springframework.core.io.InputStreamResource resource = new org.springframework.core.io.InputStreamResource(inputStream);
+        return new ResponseEntity<>(resource, headers, HttpStatus.PARTIAL_CONTENT);
     }
 }

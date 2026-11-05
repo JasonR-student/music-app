@@ -20,6 +20,141 @@
   const resumeBtn= document.getElementById('resumeBtn');
   const markers  = document.getElementById('chapterMarkers');
 
+  // ===== 「乐见」模块 =====
+  const vizCanvas = document.getElementById('vizCanvas');
+  const yjToggle = document.getElementById('yjToggle');
+  const yjHaptic = document.getElementById('yjHaptic');
+  const yjStatus = document.getElementById('yjStatus');
+  const yjText = yjStatus ? yjStatus.querySelector('.yj-text') : null;
+  const yjDot = yjStatus ? yjStatus.querySelector('.yj-dot') : null;
+
+  let yuejianActive = false;
+  let audioInitialized = false;
+
+  // 初始化可视化画布
+  if(vizCanvas && window.VisualTranslator){
+    VisualTranslator.init(vizCanvas);
+  }
+
+  // 初始化叙事引擎
+  if(window.NarrativeEngine){
+    NarrativeEngine.init({
+      title: document.getElementById('narrativeTitle'),
+      subtitle: document.getElementById('narrativeSubtitle'),
+      story: document.getElementById('narrativeStory'),
+      emotion: document.getElementById('narrativeEmotion')
+    }, function(chapterName, narrative){
+      // 章节切换回调
+      if(window.VisualTranslator){
+        VisualTranslator.setChapter(chapterName);
+      }
+      if(window.HapticEngine){
+        HapticEngine.chapterTransition();
+      }
+    });
+  }
+
+  // 触觉按钮显示（仅移动端支持时显示）
+  if(yjHaptic && window.HapticEngine && HapticEngine.supported()){
+    yjHaptic.style.display = '';
+    yjHaptic.addEventListener('click', function(){
+      if(HapticEngine.isEnabled()){
+        HapticEngine.disable();
+        yjHaptic.classList.remove('yj-active');
+      } else {
+        HapticEngine.enable();
+        yjHaptic.classList.add('yj-active');
+      }
+    });
+  }
+
+  // 乐见开关
+  if(yjToggle){
+    yjToggle.addEventListener('click', function(){
+      yuejianActive = !yuejianActive;
+      if(yuejianActive){
+        activateYuejian();
+      } else {
+        deactivateYuejian();
+      }
+    });
+  }
+
+  function activateYuejian(){
+    yjToggle.classList.add('yj-active');
+    if(vizCanvas) vizCanvas.classList.add('viz-active');
+    document.getElementById('narrativeOverlay').classList.add('narrative-active');
+
+    // 初始化音频分析（需要用户交互后才能创建 AudioContext）
+    if(!audioInitialized){
+      MusicAnalyzer.init(video).then(function(){
+        audioInitialized = true;
+        startAnalysis();
+      }).catch(function(e){
+        console.warn('音频初始化失败:', e);
+        yuejianActive = false;
+        yjToggle.classList.remove('yj-active');
+      });
+    } else {
+      startAnalysis();
+    }
+
+    if(yjText) yjText.textContent = '乐见 · 开';
+    if(yjDot) yjDot.classList.add('yj-dot-active');
+  }
+
+  function deactivateYuejian(){
+    yjToggle.classList.remove('yj-active');
+    if(vizCanvas) vizCanvas.classList.remove('viz-active');
+    document.getElementById('narrativeOverlay').classList.remove('narrative-active');
+
+    MusicAnalyzer.stop();
+    VisualTranslator.stop();
+    HapticEngine.stopContinuous();
+
+    if(yjText) yjText.textContent = '乐见 · 关';
+    if(yjDot) yjDot.classList.remove('yj-dot-active');
+  }
+
+  function startAnalysis(){
+    MusicAnalyzer.resumeContext();
+
+    MusicAnalyzer.start(function(features){
+      // 更新视觉翻译引擎
+      VisualTranslator.update(features);
+      if(!VisualTranslator.isRunning || !VisualTranslator.isRunning()){
+        VisualTranslator.start();
+      }
+
+      // 更新叙事引擎
+      NarrativeEngine.update(video.currentTime);
+
+      // 更新触觉引擎
+      HapticEngine.update(features);
+    });
+
+    // 设置初始章节
+    if(video.currentTime >= 0){
+      NarrativeEngine.update(video.currentTime);
+    }
+  }
+
+  // 视频播放时恢复 AudioContext
+  video.addEventListener('play', function(){
+    if(yuejianActive && audioInitialized){
+      MusicAnalyzer.resumeContext();
+    }
+  });
+
+  // 视频暂停时停止分析
+  video.addEventListener('pause', function(){
+    if(yuejianActive){
+      MusicAnalyzer.stop();
+      VisualTranslator.stop();
+      HapticEngine.stopContinuous();
+    }
+  });
+
   // ===== 章节定义 =====
   const CHAPTERS = [
     {time:0,    name:'引子'},
