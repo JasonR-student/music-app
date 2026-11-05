@@ -52,6 +52,7 @@ const vizCanvas = document.getElementById('vizCanvas');
 const yjToggle = document.getElementById('yjToggle');
 const yjHaptic = document.getElementById('yjHaptic');
 const yjStatus = document.getElementById('yjStatus');
+const yjToolbar = document.querySelector('.yuejian-toolbar');
 const yjText = yjStatus ? yjStatus.querySelector('.yj-text') : null;
 const yjDot = yjStatus ? yjStatus.querySelector('.yj-dot') : null;
 
@@ -438,17 +439,40 @@ document.addEventListener('keydown', function(e){
   }
 });
 
-// ===== 控制条自动隐藏 =====
-let hideTimer;
-stage.addEventListener('mousemove', function(){
-  var controls = document.getElementById('controls');
+// ===== 控制条 & 工具栏自动隐藏 =====
+let hideTimer, yjHideTimer;
+var controls = document.getElementById('controls');
+
+function showControlsAndToolbar(){
   controls.style.opacity = '1';
   controls.style.pointerEvents = 'auto';
+  if(yjToolbar) yjToolbar.classList.add('yj-toolbar-visible');
   clearTimeout(hideTimer);
+  clearTimeout(yjHideTimer);
   if(!video.paused){
     hideTimer = setTimeout(function(){
       controls.style.opacity = '0';
       controls.style.pointerEvents = 'none';
     }, 3000);
+    yjHideTimer = setTimeout(function(){
+      if(yjToolbar) yjToolbar.classList.remove('yj-toolbar-visible');
+    }, 3000);
   }
+}
+
+stage.addEventListener('mousemove', showControlsAndToolbar);
+stage.addEventListener('touchstart', showControlsAndToolbar, {passive:true});
+
+video.addEventListener('play', function(){
+  clearTimeout(yjHideTimer);
+  yjHideTimer = setTimeout(function(){
+    if(yjToolbar) yjToolbar.classList.remove('yj-toolbar-visible');
+  }, 3000);
 });
+video.addEventListener('pause', function(){
+  clearTimeout(yjHideTimer);
+  if(yjToolbar) yjToolbar.classList.add('yj-toolbar-visible');
+});
+
+// 页面加载时工具栏默认可见
+if(yjToolbar) yjToolbar.classList.add('yj-toolbar-visible');
