@@ -59,7 +59,9 @@ vedioWeb/
 │   └── logo/                     # 图标、SVG
 ├── tests/                        # Vitest 单元测试
 ├── package.json                  # 前端依赖
-├── vite.config.js                # Vite 构建配置
+├── vite.config.js                # Vite 构建配置 (Spring Boot 产物)
+├── vite.deploy.config.js         # Vite 构建配置 (Qoder Sites 静态部署)
+├── deploy/                       # 部署暂存 (gitignore): public/ 裁剪资源 + web/ 构建产物
 ├── pom.xml                       # Maven 配置 (含 frontend-maven-plugin)
 └── src/main/java/                # Spring Boot 后端
 ```
@@ -126,6 +128,25 @@ ls -lh /opt/video/liangzhu.mp4
 # 启动
 nohup java -jar target/music-app-1.0.0.jar > /opt/music-app/app.log 2>&1 &
 ```
+
+## Qoder Sites 静态部署
+
+除自建服务器外，也可作为纯静态站点部署到 Qoder Sites：
+
+```bash
+# 1. 准备压缩视频（原始 304 MiB 超出托管单文件上限，需压到 50 MiB 内）
+#    两遍编码：640x360 / 24fps / H.264 140kbps + AAC 72kbps，+faststart
+ffmpeg -i public/media/liangzhu.mp4 -vf scale=640:360 -r 24 \
+  -c:v libx264 -b:v 140k -pass 1 -an -f null NUL
+ffmpeg -i public/media/liangzhu.mp4 -vf scale=640:360 -r 24 \
+  -c:v libx264 -b:v 140k -pass 2 -c:a aac -b:a 72k -movflags +faststart \
+  deploy/public/media/liangzhu.mp4
+
+# 2. 构建静态产物到 deploy/web/
+npm run build:deploy
+```
+
+`deploy/public/` 只放上线所需资源（图标、封面、海报图、压缩视频），`deploy/web/` 即托管目录；整包约 44 MiB。视频时长保持与原片一致（1679.94s），章节标记无需调整。
 
 ## 配置
 

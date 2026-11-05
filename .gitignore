@@ -25,3 +25,6 @@ Thumbs.db
 
 # WorkBuddy
 .workbuddy-ai/
+
+# Qoder Sites 部署暂存（裁剪后的静态资源 + 压缩视频 + 构建输出）
+deploy/

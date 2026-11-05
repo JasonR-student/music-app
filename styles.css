@@ -463,6 +463,8 @@ body{
 /* 可视化画布（覆盖在视频上方） */
 .viz-canvas{
   position:absolute;inset:0;z-index:3;
+  /* canvas 是替换元素，仅靠 inset:0 不会拉伸，必须显式给满宽高 */
+  width:100%;height:100%;
   pointer-events:none;
   opacity:0;
   transition:opacity 0.8s ease;

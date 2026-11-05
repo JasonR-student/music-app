@@ -2,6 +2,21 @@
 
 All notable changes to this project are documented in this file.
 
+## [Unreleased]
+
+### 🌐 Qoder Sites 静态部署
+
+- **部署构建通道**: 新增 `vite.deploy.config.js` 与 `npm run build:deploy`，产物输出到 `deploy/web/`（Qoder Sites 的 webDirectory）
+- **部署资源裁剪**: `deploy/public/` 只保留上线所需资源（favicon、SVG、封面、海报图与压缩视频），避免把 `public/media/` 的原始大视频打进部署包
+- **视频压缩管线**: 原始 304 MiB / 720p 视频两遍编码为 43.7 MiB（640x360 / 24fps / H.264 140kbps + AAC 72kbps，`+faststart`），时长保持 1679.94s 不变以对齐章节标记
+- **ASCII 视频文件名**: `player.html` 的视频源改为 `media/liangzhu.mp4`，避免非 ASCII 路径在静态托管下的编码问题
+
+### 🐛 Bug Fixes
+
+- **可视化画布尺寸**: `.viz-canvas` 仅靠 `inset:0` 无法拉伸替换元素（canvas），导致画布锁死在 300x150 固有尺寸；补充 `width/height:100%` 后铺满视频舞台
+- **音频特征平滑崩溃**: `audio-worker.js` 的 `smoothFeatures` 将归一化后的特征存入 `prevFeatures`，下一帧却按原始形状读取（`prevFeatures.subbandEnergy.sub` 等），第 2 帧起抛 TypeError 且所有数值字段变为 NaN，可视化彻底停摆；改为用独立的 `prevRaw` 保存原始特征做插值
+- **主频插值 NaN**: `findDominantFrequency` 抛物线插值分母为 0 时产生 NaN/Infinity，并经平滑链污染后续所有帧；增加零分母保护
+
 ## [1.0.0] - 2026-11-05
 
 ### 🚀 Features (Phase B)

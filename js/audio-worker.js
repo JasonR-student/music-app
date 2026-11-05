@@ -11,6 +11,7 @@ var binWidth = 0;
 
 var SMOOTH = 0.35;
 var prevFeatures = null;
+var prevRaw = null;
 var prevSpectrum = null;
 
 var ENERGY_HISTORY_SIZE = 43;
@@ -44,6 +45,7 @@ self.onmessage = function(e){
     var features = extractFeatures(freqData, timeData, now);
     var smoothed = smoothFeatures(features);
     prevFeatures = smoothed;
+    prevRaw = features;
 
     self.postMessage({ type: 'features', features: smoothed });
   }
@@ -142,7 +144,9 @@ function findDominantFrequency(freqData){
     var alpha = freqData[maxBin - 1];
     var beta = freqData[maxBin];
     var gamma = freqData[maxBin + 1];
-    var p = 0.5 * (alpha - gamma) / (alpha - 2 * beta + gamma);
+    var denom = alpha - 2 * beta + gamma;
+    // 分母为 0 时抛物线插值会产生 NaN/Infinity，并经平滑链污染后续所有帧
+    var p = denom !== 0 ? 0.5 * (alpha - gamma) / denom : 0;
     return (maxBin + p) * binWidth;
   }
 
@@ -210,24 +214,24 @@ function computeSpectralFlux(freqData){
 }
 
 function smoothFeatures(features){
-  if(!prevFeatures) return normalizeFeatures(features);
+  if(!prevRaw) return normalizeFeatures(features);
 
   var result = {};
-  result.rms = lerp(prevFeatures.rms, features.rms, 1 - SMOOTH);
-  result.spectralCentroid = lerp(prevFeatures.spectralCentroid, features.spectralCentroid, 1 - SMOOTH);
-  result.spectralRolloff = lerp(prevFeatures.spectralRolloff, features.spectralRolloff, 1 - SMOOTH);
-  result.spectralFlatness = lerp(prevFeatures.spectralFlatness, features.spectralFlatness, 1 - SMOOTH);
-  result.dominantFreq = lerp(prevFeatures.dominantFreq, features.dominantFreq, 1 - SMOOTH);
+  result.rms = lerp(prevRaw.rms, features.rms, 1 - SMOOTH);
+  result.spectralCentroid = lerp(prevRaw.spectralCentroid, features.spectralCentroid, 1 - SMOOTH);
+  result.spectralRolloff = lerp(prevRaw.spectralRolloff, features.spectralRolloff, 1 - SMOOTH);
+  result.spectralFlatness = lerp(prevRaw.spectralFlatness, features.spectralFlatness, 1 - SMOOTH);
+  result.dominantFreq = lerp(prevRaw.dominantFreq, features.dominantFreq, 1 - SMOOTH);
   result.isBeat = features.isBeat;
   result.beatStrength = features.isBeat ? 1.0 : (prevFeatures.beatStrength || 0) * 0.7;
-  result.bpm = features.bpm || prevFeatures.bpm;
-  result.spectralFlux = lerp(prevFeatures.spectralFlux, features.spectralFlux, 1 - SMOOTH);
+  result.bpm = features.bpm || prevRaw.bpm;
+  result.spectralFlux = lerp(prevRaw.spectralFlux, features.spectralFlux, 1 - SMOOTH);
   result.timestamp = features.timestamp;
 
   result.subbandEnergy = {};
   for(var key in features.subbandEnergy){
     result.subbandEnergy[key] = lerp(
-      prevFeatures.subbandEnergy[key] || 0,
+      prevRaw.subbandEnergy[key] || 0,
       features.subbandEnergy[key],
       1 - SMOOTH
     );
