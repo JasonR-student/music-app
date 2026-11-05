@@ -1,5 +1,9 @@
-# 构建产物
+# 依赖
+node_modules/
+
+# 构建产物（由 vite build 或 mvn package 自动生成）
 target/
+src/main/resources/static/
 
 # IDE
 .idea/
@@ -10,7 +14,6 @@ target/
 .project
 
 # 大视频文件（不提交到git，存外部目录）
-media/*.mp4
 *.mp4
 
 # 系统文件

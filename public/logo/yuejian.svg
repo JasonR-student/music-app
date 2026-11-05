@@ -1,0 +1,176 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="42%">
+      <stop offset="0%" stop-color="#1e3838"/>
+      <stop offset="100%" stop-color="#142626"/>
+    </radialGradient>
+    <linearGradient id="bodyGrad" x1="0.3" y1="0" x2="0.7" y2="1">
+      <stop offset="0%" stop-color="#6ab8a0"/>
+      <stop offset="40%" stop-color="#5aaa90"/>
+      <stop offset="100%" stop-color="#4a9078"/>
+    </linearGradient>
+    <linearGradient id="goldGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#b0a878"/>
+      <stop offset="100%" stop-color="#8a8060"/>
+    </linearGradient>
+    <linearGradient id="waveGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#4a9888"/>
+      <stop offset="100%" stop-color="#2d7060"/>
+    </linearGradient>
+    <!-- 木纹纹理 -->
+    <pattern id="woodGrain" x="0" y="0" width="4" height="200" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="200" stroke="#4a9078" stroke-width="0.3" opacity="0.3"/>
+      <line x1="2" y1="0" x2="2" y2="200" stroke="#5aaa90" stroke-width="0.2" opacity="0.2"/>
+    </pattern>
+  </defs>
+
+  <!-- 底色 -->
+  <circle cx="100" cy="100" r="95" fill="url(#bg)"/>
+
+  <!-- 金色外边框 -->
+  <circle cx="100" cy="100" r="95" fill="none" stroke="url(#goldGrad)" stroke-width="4"/>
+  <circle cx="100" cy="100" r="92" fill="none" stroke="url(#goldGrad)" stroke-width="0.8" opacity="0.5"/>
+
+  <!-- 如意云纹（左上） -->
+  <g fill="none" stroke="url(#goldGrad)" stroke-width="1.2" stroke-linecap="round" opacity="0.7">
+    <path d="M42 52 C42 46 48 44 50 48 C52 44 58 44 58 50 C58 54 54 56 50 56 C46 56 42 54 42 52"/>
+    <path d="M50 56 C50 60 46 62 44 60"/>
+    <path d="M58 50 C62 50 64 54 62 56"/>
+  </g>
+
+  <!-- 如意云纹（右上，镜像） -->
+  <g fill="none" stroke="url(#goldGrad)" stroke-width="1.2" stroke-linecap="round" opacity="0.7" transform="translate(200,0) scale(-1,1)">
+    <path d="M42 52 C42 46 48 44 50 48 C52 44 58 44 58 50 C58 54 54 56 50 56 C46 56 42 54 42 52"/>
+    <path d="M50 56 C50 60 46 62 44 60"/>
+    <path d="M58 50 C62 50 64 54 62 56"/>
+  </g>
+
+  <!-- 琵琶琴身（梨形） -->
+  <path d="M100 56
+           C100 56 100 66 100 76
+           C100 88 96 100 90 112
+           C82 128 76 142 76 150
+           C76 160 87 166 100 166
+           C113 166 124 160 124 150
+           C124 142 118 128 110 112
+           C104 100 100 88 100 76
+           C100 66 100 56 100 56 Z"
+        fill="url(#bodyGrad)"/>
+
+  <!-- 木纹叠加 -->
+  <path d="M100 56
+           C100 56 100 66 100 76
+           C100 88 96 100 90 112
+           C82 128 76 142 76 150
+           C76 160 87 166 100 166
+           C113 166 124 160 124 150
+           C124 142 118 128 110 112
+           C104 100 100 88 100 76
+           C100 66 100 56 100 56 Z"
+        fill="url(#woodGrain)"/>
+
+  <!-- 琴身轮廓线 -->
+  <path d="M100 56
+           C100 56 100 66 100 76
+           C100 88 96 100 90 112
+           C82 128 76 142 76 150
+           C76 160 87 166 100 166
+           C113 166 124 160 124 150
+           C124 142 118 128 110 112
+           C104 100 100 88 100 76
+           C100 66 100 56 100 56 Z"
+        fill="none" stroke="#3a7a68" stroke-width="0.8"/>
+
+  <!-- 琴颈 -->
+  <rect x="97" y="42" width="6" height="18" rx="1" fill="#5aaa90"/>
+  <rect x="97.5" y="42" width="1.5" height="18" fill="#6ab8a0" opacity="0.4"/>
+
+  <!-- 琴头（花形） -->
+  <path d="M94 38 L94 34 L97 31 L100 29 L103 31 L106 34 L106 38 L103 40 L97 40 Z" fill="#5aaa90"/>
+  <!-- 琴头花纹 -->
+  <path d="M97 35 Q100 33 103 35" fill="none" stroke="#3a7a68" stroke-width="0.5"/>
+
+  <!-- 弦轴（四个，带细节） -->
+  <g>
+    <ellipse cx="88" cy="44" rx="7" ry="3.5" fill="#8a8060"/>
+    <ellipse cx="88" cy="44" rx="5" ry="2.5" fill="#a09870"/>
+    <line x1="84" y1="44" x2="92" y2="44" stroke="#6a6040" stroke-width="0.5"/>
+
+    <ellipse cx="112" cy="44" rx="7" ry="3.5" fill="#8a8060"/>
+    <ellipse cx="112" cy="44" rx="5" ry="2.5" fill="#a09870"/>
+    <line x1="108" y1="44" x2="116" y2="44" stroke="#6a6040" stroke-width="0.5"/>
+
+    <ellipse cx="88" cy="51" rx="7" ry="3.5" fill="#8a8060"/>
+    <ellipse cx="88" cy="51" rx="5" ry="2.5" fill="#a09870"/>
+    <line x1="84" y1="51" x2="92" y2="51" stroke="#6a6040" stroke-width="0.5"/>
+
+    <ellipse cx="112" cy="51" rx="7" ry="3.5" fill="#8a8060"/>
+    <ellipse cx="112" cy="51" rx="5" ry="2.5" fill="#a09870"/>
+    <line x1="108" y1="51" x2="116" y2="51" stroke="#6a6040" stroke-width="0.5"/>
+  </g>
+
+  <!-- 品丝（横向） -->
+  <g stroke="#8a8060" stroke-width="0.6" opacity="0.6">
+    <line x1="95" y1="62" x2="105" y2="62"/>
+    <line x1="94.5" y1="66" x2="105.5" y2="66"/>
+    <line x1="94" y1="70" x2="106" y2="70"/>
+    <line x1="93.5" y1="74" x2="106.5" y2="74"/>
+    <line x1="93" y1="78" x2="107" y2="78"/>
+    <line x1="92.5" y1="82" x2="107.5" y2="82"/>
+    <line x1="92" y1="86" x2="108" y2="86"/>
+    <line x1="91.5" y1="90" x2="108.5" y2="90"/>
+  </g>
+
+  <!-- 琴弦（四条） -->
+  <g stroke="#c8c0a0" stroke-width="0.5" opacity="0.7">
+    <line x1="98" y1="44" x2="98" y2="158"/>
+    <line x1="99.3" y1="44" x2="99.3" y2="158"/>
+    <line x1="100.7" y1="44" x2="100.7" y2="158"/>
+    <line x1="102" y1="44" x2="102" y2="158"/>
+  </g>
+
+  <!-- 音孔（两个，带花纹） -->
+  <g>
+    <circle cx="84" cy="120" r="8" fill="#142626" opacity="0.8"/>
+    <circle cx="84" cy="120" r="6.5" fill="none" stroke="#8a8060" stroke-width="0.8"/>
+    <circle cx="84" cy="120" r="4" fill="none" stroke="#8a8060" stroke-width="0.5" opacity="0.6"/>
+    <!-- 音孔内花纹 -->
+    <path d="M81 118 Q84 116 87 118 Q84 120 81 118" fill="none" stroke="#8a8060" stroke-width="0.4" opacity="0.5"/>
+    <path d="M81 122 Q84 124 87 122 Q84 120 81 122" fill="none" stroke="#8a8060" stroke-width="0.4" opacity="0.5"/>
+
+    <circle cx="116" cy="120" r="8" fill="#142626" opacity="0.8"/>
+    <circle cx="116" cy="120" r="6.5" fill="none" stroke="#8a8060" stroke-width="0.8"/>
+    <circle cx="116" cy="120" r="4" fill="none" stroke="#8a8060" stroke-width="0.5" opacity="0.6"/>
+    <path d="M113 118 Q116 116 119 118 Q116 120 113 118" fill="none" stroke="#8a8060" stroke-width="0.4" opacity="0.5"/>
+    <path d="M113 122 Q116 124 119 122 Q116 120 113 122" fill="none" stroke="#8a8060" stroke-width="0.4" opacity="0.5"/>
+  </g>
+
+  <!-- 琴码（雁柱） -->
+  <path d="M93 155 L95 152 L105 152 L107 155 L107 157 L93 157 Z" fill="#8a8060"/>
+  <path d="M95 153 L105 153" stroke="#a09870" stroke-width="0.5"/>
+
+  <!-- 波浪（多层流动） -->
+  <!-- 第一层 -->
+  <path d="M12 168 C25 162 38 166 48 163 C58 160 65 165 75 162 C82 160 88 163 94 161 C97 160 99 160 100 160 C101 160 103 160 106 161 C112 163 118 160 125 162 C135 165 142 160 152 163 C162 166 175 162 188 168 C182 172 168 169 155 172 C142 175 130 170 118 173 C110 175 105 175 100 175 C95 175 90 175 82 173 C70 170 58 175 45 172 C32 169 18 172 12 168 Z"
+        fill="url(#waveGrad)" opacity="0.85"/>
+  <!-- 波浪金线 -->
+  <path d="M12 168 C25 162 38 166 48 163 C58 160 65 165 75 162 C82 160 88 163 94 161 C97 160 99 160 100 160 C101 160 103 160 106 161 C112 163 118 160 125 162 C135 165 142 160 152 163 C162 166 175 162 188 168"
+        fill="none" stroke="url(#goldGrad)" stroke-width="0.8" opacity="0.6"/>
+
+  <!-- 第二层 -->
+  <path d="M8 174 C22 169 36 173 50 170 C62 167 72 172 82 169 C90 167 95 169 100 168 C105 169 110 167 118 169 C128 172 138 167 150 170 C164 173 178 169 192 174 C185 178 172 175 158 178 C144 181 132 176 118 179 C110 181 105 181 100 181 C95 181 90 181 82 179 C68 176 56 181 42 178 C28 175 15 178 8 174 Z"
+        fill="#2d7060" opacity="0.6"/>
+  <path d="M8 174 C22 169 36 173 50 170 C62 167 72 172 82 169 C90 167 95 169 100 168 C105 169 110 167 118 169 C128 172 138 167 150 170 C164 173 178 169 192 174"
+        fill="none" stroke="url(#goldGrad)" stroke-width="0.6" opacity="0.4"/>
+
+  <!-- 底部云纹波浪装饰（左下） -->
+  <g fill="none" stroke="url(#goldGrad)" stroke-width="1" stroke-linecap="round" opacity="0.5">
+    <path d="M22 160 C22 154 28 152 30 156 C32 152 38 152 38 158 C38 162 34 164 30 164 C26 164 22 162 22 160"/>
+    <path d="M30 164 C30 168 26 170 24 168"/>
+  </g>
+  <!-- 底部云纹波浪装饰（右下，镜像） -->
+  <g fill="none" stroke="url(#goldGrad)" stroke-width="1" stroke-linecap="round" opacity="0.5" transform="translate(200,0) scale(-1,1)">
+    <path d="M22 160 C22 154 28 152 30 156 C32 152 38 152 38 158 C38 162 34 164 30 164 C26 164 22 162 22 160"/>
+    <path d="M30 164 C30 168 26 170 24 168"/>
+  </g>
+</svg>

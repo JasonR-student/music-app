@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>从梁祝开始 · 走进中国音乐</title>
+<link rel="icon" type="image/x-icon" href="logo/favicon.ico">
 <link rel="stylesheet" href="styles.css">
 </head>
 <body class="player-body">
@@ -14,36 +15,7 @@
   </div>
 
   <!-- 水墨背景 -->
-  <canvas id="inkCanvas" class="ink-canvas"></canvas>
-
-  <!-- 「乐见」可视化画布（覆盖在视频上方） -->
-  <canvas id="vizCanvas" class="viz-canvas"></canvas>
-
-  <!-- 叙事字幕区 -->
-  <div class="narrative-overlay" id="narrativeOverlay">
-    <div class="narrative-content">
-      <h3 class="narrative-title" id="narrativeTitle"></h3>
-      <p class="narrative-subtitle" id="narrativeSubtitle"></p>
-      <p class="narrative-story" id="narrativeStory"></p>
-      <span class="narrative-emotion" id="narrativeEmotion"></span>
-    </div>
-  </div>
-
-  <!-- 乐见工具栏 -->
-  <div class="yuejian-toolbar" id="yuejianToolbar">
-    <button class="yj-btn" id="yjToggle" title="开启/关闭音乐可视化翻译">
-      <svg viewBox="0 0 24 24" width="18" height="18"><circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M8 12c0-2.2 1.8-4 4-4s4 1.8 4 4-1.8 4-4 4" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/></svg>
-      <span>乐见</span>
-    </button>
-    <button class="yj-btn yj-haptic" id="yjHaptic" title="触觉反馈（移动端）" style="display:none">
-      <svg viewBox="0 0 24 24" width="16" height="16"><path d="M2 10v4h3l3.5 7h7l3.5-7h3v-4h-3L15.5 3h-7L5 10H2z" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>
-      <span>触觉</span>
-    </button>
-    <div class="yj-status" id="yjStatus">
-      <span class="yj-dot"></span>
-      <span class="yj-text">就绪</span>
-    </div>
-  </div>
+  <canvas id="inkCanvas" class="ink-canvas" aria-label="水墨粒子特效画布"></canvas>
 
   <main class="player-wrap">
     <a href="index.html" class="back-link">
@@ -58,25 +30,63 @@
     </header>
 
     <!-- 视频区域 -->
-    <section class="video-stage">
+    <section class="video-stage" role="region" aria-label="视频播放器">
       <video id="video" preload="metadata" playsinline poster="media/poster.jpg">
         <source src="media/梁祝.mp4" type="video/mp4">
         您的浏览器不支持视频播放。
       </video>
 
+      <!-- 「乐见」可视化画布（覆盖在视频上方） -->
+      <canvas id="vizCanvas" class="viz-canvas" aria-label="音乐可视化画布"></canvas>
+
+      <!-- 叙事字幕区 -->
+      <div class="narrative-overlay" id="narrativeOverlay" role="status" aria-live="polite">
+        <div class="narrative-content">
+          <h3 class="narrative-title" id="narrativeTitle"></h3>
+          <p class="narrative-subtitle" id="narrativeSubtitle"></p>
+          <p class="narrative-story" id="narrativeStory"></p>
+          <span class="narrative-emotion" id="narrativeEmotion"></span>
+        </div>
+      </div>
+
+      <!-- 乐见工具栏 -->
+      <div class="yuejian-toolbar" id="yuejianToolbar">
+        <button class="yj-btn" id="yjToggle" title="开启/关闭音乐可视化翻译">
+          <svg viewBox="0 0 24 24" width="18" height="18"><circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M8 12c0-2.2 1.8-4 4-4s4 1.8 4 4-1.8 4-4 4" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/></svg>
+          <span>乐见</span>
+        </button>
+        <button class="yj-btn yj-haptic" id="yjHaptic" title="触觉反馈（移动端）" style="display:none">
+          <svg viewBox="0 0 24 24" width="16" height="16"><path d="M2 10v4h3l3.5 7h7l3.5-7h3v-4h-3L15.5 3h-7L5 10H2z" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>
+          <span>触觉</span>
+        </button>
+        <button class="yj-btn" id="yjLang" title="中/EN 切换">
+          <span style="font-size:12px;font-weight:600;letter-spacing:0">中</span>
+        </button>
+        <button class="yj-btn" id="yjDark" title="暗色模式">
+          <svg viewBox="0 0 24 24" width="16" height="16"><path d="M12 3a9 9 0 1 0 9 9c0-.46-.04-.92-.1-1.36a5.389 5.389 0 0 1-4.4 2.26 5.403 5.403 0 0 1-3.14-9.8c-.44-.06-.9-.1-1.36-.1z" fill="currentColor"/></svg>
+        </button>
+        <div class="yj-status" id="yjStatus">
+          <span class="yj-dot"></span>
+          <span class="yj-text">就绪</span>
+        </div>
+      </div>
+
       <!-- 章节书签标记 -->
       <div class="chapter-markers" id="chapterMarkers"></div>
 
       <!-- 控制条 -->
-      <div class="controls" id="controls">
+      <div class="controls" id="controls" role="toolbar" aria-label="播放控制">
         <button class="ink-btn play-btn" id="playBtn" aria-label="播放">
           <span class="ink-circle"></span>
           <svg class="icon-play" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
           <svg class="icon-pause" viewBox="0 0 24 24" style="display:none"><path d="M6 5h4v14H6zM14 5h4v14h-4z"/></svg>
         </button>
-        <div class="progress-track" id="progressTrack">
-          <div class="progress-ink" id="progressInk"></div>
-          <div class="progress-thumb" id="progressThumb"></div>
+        <div class="progress-wrapper">
+          <canvas class="emotion-curve" id="emotionCurve"></canvas>
+          <div class="progress-track" id="progressTrack">
+            <div class="progress-ink" id="progressInk"></div>
+            <div class="progress-thumb" id="progressThumb"></div>
+          </div>
         </div>
         <span class="time-display" id="timeDisplay">0:00 / 0:00</span>
         <!-- 倍速 -->
@@ -205,11 +215,6 @@
     </section>
   </main>
 
-  <script src="music-analyzer.js"></script>
-  <script src="visual-translator.js"></script>
-  <script src="narrative-engine.js"></script>
-  <script src="haptic-engine.js"></script>
-  <script src="app.js"></script>
-  <script src="player.js"></script>
+  <script type="module" src="/js/player-main.js"></script>
 </body>
 </html>

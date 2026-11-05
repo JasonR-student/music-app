@@ -1,110 +1,151 @@
-# 中国民族音乐赏析 · 教学案例库
+# 乐见 · 中国民族音乐赏析
 
-Spring Boot 3 + Java 21 + Maven 3.9 后端，国风水墨 UI 前端。
+面向听障人群的**音乐可视化翻译系统**，以小提琴协奏曲《梁祝》为案例，将音乐实时转化为水墨风格的多模态视觉语言。
+
+Spring Boot 3 + Java 21 后端，Vite + ES Module 前端，国风水墨 UI。
+
+## 功能特性
+
+- **实时音乐可视化**：音频特征 → 水墨笔画、墨滴粒子、光晕、旋律线、频谱粒子 6 层渲染
+- **章节叙事系统**：8 个乐章章节自动匹配叙事文本 + 中英文双语切换
+- **春夏秋冬 / 晨昏主题**：粒子形态随时段与季节变化（花瓣、墨雨、枯叶、雪花）
+- **情感曲线**：进度条上方叠加实时情感强度可视化
+- **触觉反馈**：Web Vibration API 将节拍转化为移动端振动
+- **暗色模式**：CSS 变量 + 手动切换 + localStorage 持久化
+- **移动端手势**：滑动调亮度/音量、双击快进/退、长按切倍速
+- **无障碍**：ARIA 标注 + 键盘导航 + 高对比度模式
 
 ## 技术栈
 
-- Java 21
-- Maven 3.9+
-- Spring Boot 3.2.5
-- 前端：HTML / CSS / JavaScript（Canvas 粒子特效）
+| 层 | 技术 |
+|---|------|
+| 后端 | Java 21, Spring Boot 3.2.5, Maven |
+| 前端构建 | Vite 6, Terser, ES Module |
+| 前端 | HTML5 Canvas, Web Audio API, Web Worker |
+| 测试 | Vitest (42 tests) |
+| 部署 | 单 JAR, 内嵌静态资源 |
 
-## 服务器部署全流程
+## 项目结构
+
+```
+vedioWeb/
+├── index.html / player.html      # Vite 入口 (HTML)
+├── styles.css                    # 源码 CSS
+├── js/                           # ES Module 源码 (12 files)
+│   ├── event-bus.js              # 发布/订阅事件总线
+│   ├── main-loop.js              # 统一 rAF 调度器
+│   ├── music-analyzer.js         # 音频分析 (主线程)
+│   ├── audio-worker.js           # 音频特征提取 (Web Worker)
+│   ├── visual-translator.js      # 视觉翻译引擎 (6 层 Canvas)
+│   ├── narrative-engine.js       # 章节叙事 + 双语
+│   ├── haptic-engine.js          # 触觉反馈
+│   ├── emotion-curve.js          # 情感曲线
+│   ├── touch-gestures.js         # 移动端手势
+│   ├── app.js                    # 粒子特效 + 加载动画
+│   ├── player-main.js            # 播放页控制器 (入口)
+│   └── index.js                  # 首页入口
+├── public/                       # 静态资源 (原样复制到构建输出)
+│   ├── media/                    # 视频、封面图
+│   └── logo/                     # 图标、SVG
+├── tests/                        # Vitest 单元测试
+├── package.json                  # 前端依赖
+├── vite.config.js                # Vite 构建配置
+├── pom.xml                       # Maven 配置 (含 frontend-maven-plugin)
+└── src/main/java/                # Spring Boot 后端
+```
+
+## 快速开始
 
 ### 前提条件
 
-服务器已安装 **JDK 21** 和 **Maven 3.9+**，视频文件已上传到 `/opt/video/liangzhu.mp4`。
+- JDK 21+
+- Maven 3.9+
+- Node.js 20+（本地前端开发时需要；Maven 构建会自动下载）
 
-### 第 1 步：拉取代码
+### 本地开发
+
+```bash
+# 安装前端依赖
+npm install
+
+# 启动 Vite 开发服务器 (HMR)
+npm run dev
+
+# 运行单元测试
+npm test
+```
+
+### 生产构建
+
+```bash
+# 方式一：Maven 一键构建（自动执行 npm install + vite build）
+mvn clean package -DskipTests
+
+# 方式二：单独前端构建
+npm run build
+```
+
+构建产物输出到 `src/main/resources/static/`，由 Spring Boot 直接交付。
+
+### 启动服务
+
+```bash
+# 前台运行
+java -jar target/music-app-1.0.0.jar
+
+# 后台运行
+nohup java -jar target/music-app-1.0.0.jar > app.log 2>&1 &
+```
+
+浏览器访问 `http://localhost:9000`
+
+## 服务器部署
 
 ```bash
 cd /opt
 git clone https://github.com/JasonR-student/music-app.git
 cd music-app
-```
 
-### 第 2 步：构建
-
-```bash
+# 构建（自动下载 Node.js + 安装依赖 + 前端打包）
 mvn clean package -DskipTests
-```
 
-### 第 3 步：确认视频文件就位
-
-```bash
+# 确认视频文件
 ls -lh /opt/video/liangzhu.mp4
-```
+# 若缺失：mkdir -p /opt/video && scp 梁祝.mp4 user@server:/opt/video/liangzhu.mp4
 
-如果文件不在，手动上传：
-```bash
-mkdir -p /opt/video
-# 在本地机器执行 scp 上传：
-scp 梁祝.mp4 user@服务器IP:/opt/video/liangzhu.mp4
-```
-
-### 第 4 步：启动
-
-前台运行（测试用，关掉终端就停）：
-```bash
-java -jar target/music-app-1.0.0.jar
-```
-
-后台运行（生产环境推荐）：
-```bash
+# 启动
 nohup java -jar target/music-app-1.0.0.jar > /opt/music-app/app.log 2>&1 &
 ```
 
-### 第 5 步：验证
-
-```bash
-# 看日志是否启动成功
-tail -f /opt/music-app/app.log
-
-# 测试首页
-curl http://localhost:9000
-
-# 测试视频接口（应返回 206）
-curl -I --range 0-1023 http://localhost:9000/api/video/liangzhu
-```
-
-浏览器访问 `http://服务器IP:9000`
-
-### 第 6 步：停止服务
-
-```bash
-# 找到进程
-ps aux | grep music-app
-# 杀掉
-kill <PID>
-```
-
-## 配置说明
+## 配置
 
 | 配置项 | 默认值 | 说明 |
 |--------|--------|------|
 | `server.port` | 9000 | 服务端口 |
 | `video.storage-dir` | /opt/video | 视频文件存储目录 |
 
-视频文件命名规则：`{name}.mp4` → API 接口 `/api/video/{name}`。
-例如 `liangzhu.mp4` → `/api/video/liangzhu`。
+视频命名规则：`{name}.mp4` → API `/api/video/{name}`
 
-如需修改配置，启动时加参数：
-```bash
-java -jar target/music-app-1.0.0.jar --server.port=8080 --video.storage-dir=/data/video
-```
-
-## API 接口
+## API
 
 | 接口 | 说明 |
 |------|------|
 | `GET /` | 首页 |
 | `GET /player.html` | 视频播放页 |
-| `GET /api/video/{name}` | 视频流（支持 HTTP Range 分段请求） |
+| `GET /api/video/{name}` | 视频流（支持 HTTP Range） |
 
-## 本地开发（Windows）
+## 性能优化
+
+- 3 个独立 rAF 循环合并为 1 个统一调度器（MainLoop）
+- 音频特征提取移至 Web Worker，主线程零阻塞
+- 粒子回收使用 swap-and-pop O(1) 替代 Array.splice O(n)
+- Canvas 渲染节流：稳态 30fps，节拍时 60fps
+- 粒子数量根据帧间隔自适应调整
+- Vite 打包 + Terser 压缩：JS ~58KB → ~37KB (gzip ~14KB)
+
+## 停止服务
 
 ```bash
-mvn clean package -DskipTests
-# 本地开发时视频在 G:/video，覆盖配置即可：
-java -jar target/music-app-1.0.0.jar --video.storage-dir=G:/video
+ps aux | grep music-app
+kill <PID>
 ```

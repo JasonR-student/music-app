@@ -1,0 +1,19 @@
+{
+  "name": "yuejian-music-visualizer",
+  "private": true,
+  "version": "1.0.0",
+  "description": "乐见 · 中国民族音乐赏析 — 音乐可视化翻译系统",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "devDependencies": {
+    "vite": "^6.0.0",
+    "terser": "^5.36.0",
+    "vitest": "^2.1.0"
+  }
+}
