@@ -129,24 +129,85 @@ ls -lh /opt/video/liangzhu.mp4
 nohup java -jar target/music-app-1.0.0.jar > /opt/music-app/app.log 2>&1 &
 ```
 
-## Qoder Sites 静态部署
+## 视频源优先级
 
-除自建服务器外，也可作为纯静态站点部署到 Qoder Sites：
+`player.html` 按顺序尝试下列源，前一个 404/失败时浏览器自动回落到下一个：
+
+| 顺序 | 源 | 适用场景 |
+|------|-----|----------|
+| 1 | `/media/video/liangzhu.mp4` | 自建 Spring Boot：映射到 `video.storage-dir`（默认 `/opt/video`），资源处理器原生支持 Range |
+| 2 | `media/liangzhu.mp4` | 站点自带视频（本地开发、自建静态服务器） |
+| 3 | 远程直链 | Qoder Sites 静态托管：包体不含视频，整包约 1 MiB |
+
+`<video>` 上的 `crossorigin="anonymous"` 不能省略，否则 Web Audio 从跨域媒体只能读到静音、可视化整体失效；相应地**远程源必须返回 `Access-Control-Allow-Origin`**。Spring 端已在 `WebConfig.addCorsMappings` 为 `/media/video/**` 与 `/api/video/**` 放开跨域（GET/HEAD）。
+
+## 华为云 ECS 提供视频源（推荐）
+
+码率要与带宽匹配：全画质原片约 1.45 Mbps（305 MiB / 28 分钟），压缩版约 210 kbps（43.7 MiB）。ECS 带宽常见 1–5 Mbps，**对外建议提供压缩版**，原片留作下载或内网自建。
 
 ```bash
-# 1. 准备压缩视频（原始 304 MiB 超出托管单文件上限，需压到 50 MiB 内）
-#    两遍编码：640x360 / 24fps / H.264 140kbps + AAC 72kbps，+faststart
+# 1. 本地：压缩出对外版本（两遍编码 640x360 / 24fps / H.264 140kbps + AAC 72kbps，+faststart）
 ffmpeg -i public/media/liangzhu.mp4 -vf scale=640:360 -r 24 \
   -c:v libx264 -b:v 140k -pass 1 -an -f null NUL
 ffmpeg -i public/media/liangzhu.mp4 -vf scale=640:360 -r 24 \
   -c:v libx264 -b:v 140k -pass 2 -c:a aac -b:a 72k -movflags +faststart \
-  deploy/public/media/liangzhu.mp4
+  deploy/liangzhu.mp4
 
-# 2. 构建静态产物到 deploy/web/
-npm run build:deploy
+# 2. 本地：上传到 ECS
+scp deploy/liangzhu.mp4 root@<ECS_IP>:/opt/video/liangzhu.mp4
 ```
 
-`deploy/public/` 只放上线所需资源（图标、封面、海报图、压缩视频），`deploy/web/` 即托管目录；整包约 44 MiB。视频时长保持与原片一致（1679.94s），章节标记无需调整。
+`/etc/nginx/conf.d/video.conf`：
+
+```nginx
+server {
+    listen 443 ssl http2;
+    server_name video.example.com;                    # 换成你的域名
+
+    ssl_certificate     /etc/nginx/cert/video.example.com.pem;
+    ssl_certificate_key /etc/nginx/cert/video.example.key;
+
+    location /video/ {
+        alias /opt/video/;
+        types { video/mp4 mp4; }
+
+        add_header Access-Control-Allow-Origin  *                  always;
+        add_header Access-Control-Allow-Methods "GET, HEAD, OPTIONS" always;
+        add_header Accept-Ranges               bytes               always;
+        add_header Cache-Control               "public, max-age=604800" always;
+        # Range 请求由 nginx 静态模块原生支持，无需额外配置
+    }
+}
+```
+
+直链即 `https://video.example.com/video/liangzhu.mp4`，把它填进 `player.html` 的第 3 个 `<source>` 后 `npm run build:deploy`。
+
+前置条件与验证：
+
+- **备案**：中国大陆地域 ECS 用域名对外提供 Web 服务需完成 ICP 备案；未备案可改用中国香港/新加坡地域。证书无法签给 IP，而 Qoder Sites 是 HTTPS 站点，用 `http://IP` 会被当混合内容拦截 —— 所以域名 + 证书是必需的。
+- **证书**：华为云 SSL 证书服务可申请免费 DV 证书，或用 `acme.sh` 签 Let's Encrypt；安全组放行 443。
+- **三项验证**（全部通过才可用）：
+
+```bash
+curl -sI -H "Origin: https://<你的站点域名>" https://video.example.com/video/liangzhu.mp4 \
+  | grep -i "^HTTP/\|access-control-allow-origin\|content-type\|accept-ranges\|content-disposition"
+curl -s -o /dev/null -w "%{http_code} %{speed_download} B/s\n" \
+  -r 0-2097151 https://video.example.com/video/liangzhu.mp4
+```
+
+期望：`200`/`206`、`Access-Control-Allow-Origin: *`、`Content-Type: video/mp4`、`Accept-Ranges: bytes`，**且不能出现 `Content-Disposition: attachment`**；下载速率需明显高于视频码率（210 kbps ≈ 26 KB/s）。
+
+## Qoder Sites 静态部署
+
+```bash
+npm run build:deploy     # 产物输出到 deploy/web/，即托管目录
+```
+
+`deploy/public/` 只放图标、封面与海报图（视频不进托管包），`deploy/web/` 整包约 1 MiB。
+
+> 为什么视频不进托管包：Qoder Sites 单文件上限 50 MiB，且产物上传是**单次 PUT、限时 45 秒**（约需 ≥1 MB/s 稳定上行）。44 MiB 的包在上行不足的网络下传不完，移出视频后包体降到 ~1 MiB。
+>
+> 为什么不用 GitHub Release 直链：实测（校园网）资源下载仅 9.7 KB/s 且间歇 504，响应还缺 `Access-Control-Allow-Origin`、`Content-Type` 为 `application/octet-stream`、并带 `Content-Disposition: attachment` —— 配 `crossorigin` 时必然加载失败。Release 仅作仓库备份保留。
 
 ## 配置
 

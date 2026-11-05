@@ -30,8 +30,11 @@
     </header>
 
     <!-- 视频区域 -->
+    <!-- crossorigin 必需：跨域媒体没有 CORS 时 Web Audio 分析只能取到静音，可视化会失效 -->
+    <!-- 源优先级：服务器外部目录（video.storage-dir）→ 站点自带 media/ → 远程直链；前者 404 时自动回落 -->
     <section class="video-stage" role="region" aria-label="视频播放器">
-      <video id="video" preload="metadata" playsinline poster="media/poster.jpg">
+      <video id="video" preload="metadata" playsinline poster="media/poster.jpg" crossorigin="anonymous">
+        <source src="/media/video/liangzhu.mp4" type="video/mp4">
         <source src="media/liangzhu.mp4" type="video/mp4">
         您的浏览器不支持视频播放。
       </video>

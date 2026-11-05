@@ -7,9 +7,13 @@ All notable changes to this project are documented in this file.
 ### 🌐 Qoder Sites 静态部署
 
 - **部署构建通道**: 新增 `vite.deploy.config.js` 与 `npm run build:deploy`，产物输出到 `deploy/web/`（Qoder Sites 的 webDirectory）
-- **部署资源裁剪**: `deploy/public/` 只保留上线所需资源（favicon、SVG、封面、海报图与压缩视频），避免把 `public/media/` 的原始大视频打进部署包
+- **部署资源裁剪**: `deploy/public/` 只保留上线所需的图标、封面与海报图；视频不进托管包，包体从 44 MiB 降到约 1 MiB
+- **视频源优先级链**: `player.html` 按 `/media/video/liangzhu.mp4`（`video.storage-dir`，默认 `/opt/video`）→ `media/liangzhu.mp4`（站点自带）→ 远程直链 依次尝试，前者 404 时浏览器自动回落；自建服务器命中全画质原片，静态托管走远程直链
+- **视频接口跨域**: `WebConfig.addCorsMappings` 为 `/media/video/**` 与 `/api/video/**` 放开 GET/HEAD 跨域，使站点部署在其它域名（如 Qoder Sites）时仍能读取媒体做音频分析
+- **跨域音频分析**: `<video>` 增加 `crossorigin="anonymous"`；跨域媒体缺少 CORS 时经 `MediaElementSource` 只能取到静音，可视化会整体失效
 - **视频压缩管线**: 原始 304 MiB / 720p 视频两遍编码为 43.7 MiB（640x360 / 24fps / H.264 140kbps + AAC 72kbps，`+faststart`），时长保持 1679.94s 不变以对齐章节标记
-- **ASCII 视频文件名**: `player.html` 的视频源改为 `media/liangzhu.mp4`，避免非 ASCII 路径在静态托管下的编码问题
+- **ASCII 视频文件名**: 视频文件统一为 `liangzhu.mp4`，避免非 ASCII 路径在静态托管下的编码问题
+- **上传窗口约束**: Qoder Sites 的产物上传是单次 PUT 且限时 45 秒（约需 ≥1 MB/s 稳定上行），这是把视频移出托管包的直接原因
 
 ### 🐛 Bug Fixes
 

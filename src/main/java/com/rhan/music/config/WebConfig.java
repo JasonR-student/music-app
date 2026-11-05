@@ -2,6 +2,7 @@ package com.rhan.music.config;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
@@ -23,5 +24,13 @@ public class WebConfig implements WebMvcConfigurer {
         }
         registry.addResourceHandler("/media/video/**")
                 .addResourceLocations("file:" + location);
+    }
+
+    @Override
+    public void addCorsMappings(CorsRegistry registry) {
+        // 前端可能部署在其它域名（如 Qoder Sites），<video crossorigin> 取不到 CORS 头就会加载失败，
+        // Web Audio 分析也只能读到静音，可视化整体失效
+        registry.addMapping("/media/video/**").allowedOrigins("*").allowedMethods("GET", "HEAD");
+        registry.addMapping("/api/video/**").allowedOrigins("*").allowedMethods("GET", "HEAD");
     }
 }
