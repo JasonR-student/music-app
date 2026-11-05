@@ -284,7 +284,7 @@ body{
 #video{display:block;width:100%;height:auto;background:#000;outline:none;}
 
 /* 章节标记 */
-.chapter-markers{position:absolute;left:0;right:0;bottom:56px;height:0;z-index:5;pointer-events:none;}
+.chapter-markers{position:absolute;left:0;right:0;top:-16px;height:0;z-index:5;pointer-events:none;}
 .chapter-marker{
   position:absolute;top:-4px;width:8px;height:8px;
   border-radius:50%;background:var(--gold-l);
@@ -661,7 +661,6 @@ body{
   .small-btn{width:36px;height:36px;}
   .info-block{padding:18px 16px;}
   .info-table td:first-child{width:90px;font-size:13px;}
-  .chapter-markers{bottom:52px;}
 }
 
 /* ===== 高对比度模式 ===== */
