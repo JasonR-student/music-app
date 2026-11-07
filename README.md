@@ -8,10 +8,17 @@ Spring Boot 3 + Java 21 后端，Vite + ES Module 前端，国风水墨 UI。
 
 ## 截图
 
-<!-- TODO: 添加截图 -->
-<!-- | 首页 | 播放页 |
-|------|--------|
-| ![首页](docs/screenshots/index.png) | ![播放页](docs/screenshots/player.png) | -->
+| 首页概览 | 播放器与可视化 |
+|----------|----------------|
+| ![首页](vibe_images/homepage-overview_1793968516517_12ca25da.png) | ![播放器](vibe_images/player-visualization_1793968542822_3a63bf8c.png) |
+
+| 章节导航 | 移动端适配 |
+|----------|------------|
+| ![章节](vibe_images/chapter-navigation_1793968569430_e965fbe0.png) | ![移动端](vibe_images/mobile-responsive_1793968590348_a2eae6c1.png) |
+
+| 技术架构 | 7 层渲染管线 |
+|----------|--------------|
+| ![架构](vibe_images/architecture-diagram_1793968619799_0359ce37.png) | ![渲染](vibe_images/audio-visualization-tech_1793968650590_95b0e3f5.png) |
 
 ## 功能特性
 
