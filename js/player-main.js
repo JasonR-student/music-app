@@ -6,7 +6,7 @@ import { VisualTranslator } from './visual-translator.js';
 import { NarrativeEngine } from './narrative-engine.js';
 import { HapticEngine } from './haptic-engine.js';
 import { EmotionCurve } from './emotion-curve.js';
-import './touch-gestures.js';
+import { isJustDoubleTapped } from './touch-gestures.js';
 import './app.js';
 
 // ===== 模块间 EventBus 连线 =====
@@ -136,7 +136,7 @@ function activateYuejian(){
   if(!audioInitialized){
     MusicAnalyzer.init(video).then(function(){
       audioInitialized = true;
-      yuejianActive = true;
+      if(!yuejianActive) return;
       yjToggle.classList.add('yj-active');
       startAnalysis();
       if(yjText) yjText.textContent = '乐见 · 开';
@@ -179,8 +179,8 @@ function deactivateYuejian(){
   if(yjDot) yjDot.classList.remove('yj-dot-active');
 }
 
-function startAnalysis(){
-  MusicAnalyzer.resumeContext();
+async function startAnalysis(){
+  await MusicAnalyzer.resumeContext();
   MusicAnalyzer.start(function(features){
     EventBus.emit('audio:features', { features: features, currentTime: video.currentTime });
   });
@@ -203,6 +203,9 @@ video.addEventListener('pause', function(){
 
 // ===== 视频错误处理 =====
 video.addEventListener('error', function(){
+  var existing = stage.querySelector('.video-error-overlay');
+  if(existing) existing.remove();
+
   var err = video.error;
   var msg = '视频加载失败';
   if(err){
@@ -211,6 +214,7 @@ video.addEventListener('error', function(){
     else if(err.code === err.MEDIA_ERR_DECODE) msg = '视频解码失败';
   }
   var errDiv = document.createElement('div');
+  errDiv.className = 'video-error-overlay';
   errDiv.style.cssText = 'position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#d4b27a;font-size:16px;letter-spacing:3px;z-index:20;background:rgba(0,0,0,0.7);';
   errDiv.textContent = msg;
   stage.appendChild(errDiv);
@@ -229,10 +233,24 @@ const CHAPTERS = [
 ];
 
 // ===== 播放/暂停 =====
-function safePlay(){ var p = video.play(); if(p && p.catch) p.catch(function(){}); }
+function safePlay(){
+  var p = video.play();
+  if(p && p.catch){
+    p.catch(function(e){
+      if(e.name === 'NotAllowedError'){
+        console.warn('[Player] 自动播放被阻止，需要用户交互');
+      } else if(e.name !== 'AbortError'){
+        console.warn('[Player] 播放失败:', e.message);
+      }
+    });
+  }
+}
 function togglePlay(){ if(video.paused) safePlay(); else video.pause(); }
 playBtn.addEventListener('click', togglePlay);
-video.addEventListener('click', togglePlay);
+video.addEventListener('click', function(){
+  if(isJustDoubleTapped()) return;
+  togglePlay();
+});
 video.addEventListener('play', function(){ iconPlay.style.display='none'; iconPause.style.display=''; });
 video.addEventListener('pause', function(){ iconPlay.style.display=''; iconPause.style.display='none'; });
 

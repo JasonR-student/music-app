@@ -32,11 +32,17 @@ function init(videoEl){
     analyser.connect(audioCtx.destination);
   } catch(e){
     console.warn('[MusicAnalyzer] MediaElementSource 创建失败，可能已存在:', e.message);
-    try {
-      sourceNode.connect(analyser);
-      analyser.connect(audioCtx.destination);
-    } catch(e2){
-      console.warn('[MusicAnalyzer] 无法连接音频节点');
+    if(sourceNode){
+      try {
+        sourceNode.connect(analyser);
+        analyser.connect(audioCtx.destination);
+      } catch(e2){
+        console.warn('[MusicAnalyzer] 无法连接音频节点');
+        return Promise.reject(e2);
+      }
+    } else {
+      console.error('[MusicAnalyzer] 无法获取 MediaElementSource，音频分析不可用');
+      return Promise.reject(e);
     }
   }
 
@@ -77,6 +83,38 @@ function start(callback){
         { type: 'analyze', freqData: fCopy, timeData: tCopy, timestamp: performance.now() },
         [fCopy.buffer, tCopy.buffer]
       );
+    }, 1);
+  } else {
+    console.warn('[MusicAnalyzer] Worker 不可用，使用主线程降级模式');
+    MainLoop.register('music-analyzer', function(){
+      if(!running || !userCallback) return;
+      analyser.getByteFrequencyData(freqData);
+      analyser.getByteTimeDomainData(timeData);
+
+      var rmsSum = 0;
+      for(var i = 0; i < timeData.length; i++){
+        var val = (timeData[i] - 128) / 128;
+        rmsSum += val * val;
+      }
+      var rms = Math.sqrt(rmsSum / timeData.length);
+
+      var weightedSum = 0;
+      var totalEnergy = 0;
+      var binWidth = audioCtx.sampleRate / (analyser.frequencyBinCount * 2);
+      for(var i = 0; i < freqData.length; i++){
+        var energy = freqData[i];
+        var freq = i * binWidth;
+        weightedSum += freq * energy;
+        totalEnergy += energy;
+      }
+      var spectralCentroid = totalEnergy > 0 ? weightedSum / totalEnergy : 0;
+
+      userCallback({
+        rms: rms,
+        spectralCentroid: spectralCentroid,
+        freqData: freqData,
+        timeData: timeData
+      });
     }, 1);
   }
 }

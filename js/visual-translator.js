@@ -326,7 +326,7 @@ function renderStrokes(f, theme){
       const prevP = s.points[j-1];
       const cpx = (prevP.x + p.x) / 2;
       const cpy = (prevP.y + p.y) / 2;
-      ctx.qualCurveTo(prevP.x, prevP.y, cpx, cpy);
+      ctx.quadraticCurveTo(prevP.x, prevP.y, cpx, cpy);
     }
 
     const strokeAlpha = s.alpha * s.life;

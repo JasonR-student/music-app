@@ -11,6 +11,7 @@ var isSwiping = false;
 var swipeSide = null;
 var swipeStartVal = 0;
 var indicator = null;
+var justDoubleTapped = false;
 
 function showIndicator(text, pct){
   if(!indicator){
@@ -111,6 +112,8 @@ stage.addEventListener('touchend', function(e){
         showIndicator('快进 +10s', 0.5);
       }
       lastTapTime = 0;
+      justDoubleTapped = true;
+      setTimeout(function(){ justDoubleTapped = false; }, 350);
     } else {
       lastTapTime = now;
     }
@@ -129,3 +132,5 @@ function showSpeedMenu(){
   var speedLbl = document.getElementById('speedLabel');
   if(speedLbl) speedLbl.textContent = speeds[nextIdx] + 'x';
 }
+
+export function isJustDoubleTapped(){ return justDoubleTapped; }
