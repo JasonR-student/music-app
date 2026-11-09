@@ -106,35 +106,118 @@ npm run build
 
 构建产物输出到 `src/main/resources/static/`，由 Spring Boot 直接交付。
 
-### 启动服务
+### 启动服务（本地开发）
 
 ```bash
-# 前台运行
+# 前台运行（调试用）
 java -jar target/music-app-1.0.0.jar
-
-# 后台运行
-nohup java -jar target/music-app-1.0.0.jar > app.log 2>&1 &
 ```
 
-浏览器访问 `http://localhost:9000`
+浏览器访问 `http://localhost:9000`。
 
-## 服务器部署
+> **服务器部署请使用下方 `seemusic` 命令**，不要用 `nohup ... &` 手工管理进程。端口、PID、日志、重启、停止由脚本统一处理，且启动后会打印实测监听端口。
+
+## 服务器部署（seemusic 一键全流程）
+
+> **重要前提**：GitHub 仓库不含 `target/`、`src/main/resources/static/` 与 `*.mp4`，clone 下来是纯源码，**没有可直接运行的 JAR**。必须先构建，且 `mvn clean package` 会通过 `frontend-maven-plugin` 下载 Node v20.18.0 并执行 `npm install`，**构建依赖外网**。视频需提前上传到 `/opt/video/liangzhu.mp4`。
+
+### 1. 环境准备
+
+```bash
+# Debian / Ubuntu
+sudo apt update && sudo apt install -y openjdk-21-jdk maven git curl
+# RHEL / Fedora / Rocky
+# sudo dnf install -y java-21-openjdk-devel maven git curl
+
+java -version && mvn -v      # 需 JDK 21+、Maven 3.9+
+```
+
+### 2. 拉取代码（视频已提前上传）
 
 ```bash
 cd /opt
-git clone https://github.com/JasonR-student/music-app.git
-cd music-app
-
-# 构建（自动下载 Node.js + 安装依赖 + 前端打包）
-mvn clean package -DskipTests
-
-# 确认视频文件
-ls -lh /opt/video/liangzhu.mp4
-# 若缺失：mkdir -p /opt/video && scp 梁祝.mp4 user@server:/opt/video/liangzhu.mp4
-
-# 启动
-nohup java -jar target/music-app-1.0.0.jar > /opt/music-app/app.log 2>&1 &
+sudo git clone https://github.com/JasonR-student/music-app.git music-app
+cd /opt/music-app
+ls -lh /opt/video/liangzhu.mp4        # 确认视频在位
+# 若目录权限不足：sudo chown -R "$USER" /opt/music-app /opt/video
 ```
+
+### 3. 注册全局命令（仅一次）
+
+```bash
+sudo chmod +x /opt/music-app/scripts/seemusic.sh
+sudo ln -sfn /opt/music-app/scripts/seemusic.sh /usr/local/bin/seemusic
+seemusic help
+```
+
+脚本在仓库内，通过软链注册；`seemusic pull` 后脚本自动更新，无需重装。
+
+### 4. 一键构建 + 启动
+
+```bash
+seemusic up
+```
+
+`up` 依次执行前置检查 → `mvn clean package -DskipTests` → 校验 JAR 与 Vite 双入口产物 → 启动 → 等待首页返回 HTTP 200 → **打印实测 LISTEN 行**：
+
+```
+[ OK ] 启动成功
+       LISTEN 0 0.0.0.0:9000 0.0.0.0:* users:(("java",pid=24817,fd=...))
+  实际监听端口 : 9000  (来源 .seemusic.conf: default)
+  PID          : 24817
+  访问地址     : http://127.0.0.1:9000/   (公网 http://<服务器IP>:9000/)
+  日志         : /opt/music-app/run/app.log
+  防火墙       : 需放行 TCP 9000
+```
+
+端口来自 `ss` 实测，不是简单回显配置值。**防火墙/云安全组必须放行该端口**（`sudo ufw allow 9000/tcp`），否则本机 LISTEN 成功但外网不可达。
+
+### 5. 命令表
+
+| 命令 | 作用 |
+|------|------|
+| `seemusic up` | 一键：检查 → 构建 → 启动 → 验证 → 打印端口 |
+| `seemusic build` | 仅构建（`mvn clean package`，自动 `vite build`） |
+| `seemusic start` | 启动后台服务并验证监听 |
+| `seemusic stop` | 停止服务（SIGTERM，15 秒超时后 SIGKILL） |
+| `seemusic restart` | `stop` + `start`，读取最新端口配置 |
+| `seemusic status` | 运行状态、实测 LISTEN 行、实际端口与配置端口 |
+| `seemusic port 8081` | 把端口写入 `.seemusic.conf`，`restart` 后生效 |
+| `seemusic logs -f` | 持续跟踪 `run/app.log`（Ctrl-C 不停止服务） |
+| `seemusic logs 100` | 查看最近 100 行日志 |
+| `seemusic pull` | `git pull --ff-only`（工作区有改动会中止） |
+| `seemusic help` | 完整帮助与退出码 |
+
+典型流程：
+
+```bash
+seemusic status
+seemusic port 8081 && seemusic restart     # 改端口并生效，记得同步放行 8081
+seemusic pull && seemusic up               # 更新代码后重新构建启动
+seemusic stop
+```
+
+### 端口与配置文件
+
+- `application.yml` 的 `server.port: 9000` 是**默认值**；脚本启动时用 `--server.port=N` 注入，不修改源码。
+- `seemusic port <N>` 写入项目根 `.seemusic.conf` 的 `PORT=N`（已加入 `.gitignore`），因此**不会污染 git**，`git pull` 不冲突；`restart` 后保留。
+- 配置丢失或非法时回落 9000，`status` 会标注来源 `conf` / `default`。
+- 服务运行中改端口后，`status` 会同时显示「实际端口（当前）」与「配置端口（下次启动）」，避免误判。
+- `run/` 存放 `seemusic.pid`、`app.log`、`build.log`（均已忽略）。PID 文件含 `/proc/<pid>/stat` 的 starttime，用于防止 PID 复用导致误杀；校验不通过时只清理 PID 文件，绝不 kill 无关进程。
+
+### 退出码
+
+`0` 成功 ｜ `1` 参数错 ｜ `2` 前置不满足 ｜ `3` 端口被其他进程占用 ｜ `4` 状态冲突 ｜ `5` 监听验证失败 ｜ `6` 构建失败 ｜ `7` pull 失败。`seemusic status` 在服务未运行时返回 `4` 并打印 `STOPPED`，属正常查询结果。
+
+### 构建失败排查
+
+脚本会把完整构建输出写到 `run/build.log`，失败时自动打印尾部 80 行。三类常见原因：
+
+1. 服务器无法访问 `nodejs.org`（国内常见）→ 在 `pom.xml` 的 `frontend-maven-plugin` 配 `<nodeDownloadRoot>` 指向镜像；
+2. 无法访问 npm registry → 配置 npm 镜像源；
+3. 完全离线 → 预置 `node/` 运行时与 npm 依赖缓存。
+
+> 构建脚本只做版本与连通性提示，**外网探测失败仅告警不阻断**，是否失败由 Maven 实际结果判定。
 
 ## 视频源优先级
 
@@ -220,10 +303,10 @@ npm run build:deploy     # 产物输出到 deploy/web/，即托管目录
 
 | 配置项 | 默认值 | 说明 |
 |--------|--------|------|
-| `server.port` | 9000 | 服务端口 |
-| `video.storage-dir` | /opt/video | 视频文件存储目录 |
+| `server.port` | 9000 | 服务端口默认值；服务器部署由 `seemusic port <N>` 写入 `.seemusic.conf` 并以 `--server.port=N` 注入，**不修改本文件** |
+| `video.storage-dir` | /opt/video | 视频文件存储目录；`seemusic` 自动读取该值检查视频是否就位 |
 
-视频命名规则：`{name}.mp4` → API `/api/video/{name}`
+视频命名规则：`{name}.mp4` → API `/api/video/{name}`。运行时产物 `.seemusic.conf`、`run/` 的说明见「服务器部署」章节。
 
 ## API
 
@@ -242,9 +325,27 @@ npm run build:deploy     # 产物输出到 deploy/web/，即托管目录
 - 粒子数量根据帧间隔自适应调整
 - Vite 打包 + Terser 压缩：JS ~58KB → ~37KB (gzip ~14KB)
 
-## 停止服务
+## 停止服务与验证清单
+
+停止与重启统一使用 `seemusic stop` / `seemusic restart`，无需再 `ps aux | grep music-app` 手工找 PID。
+
+部署完成后建议逐项验证：
 
 ```bash
-ps aux | grep music-app
-kill <PID>
+seemusic up                    # 输出应包含实测 LISTEN 行与端口/PID/地址/日志
+seemusic status                # RUNNING + LISTEN 行 + HTTP / -> 200
+curl -I http://127.0.0.1:9000/                                  # 首页 200
+curl -I -r 0-1023 http://127.0.0.1:9000/media/video/liangzhu.mp4   # 视频流 206 + Content-Range
+seemusic port 8081 && seemusic restart                        # status 应显示实际端口 8081
+seemusic stop                  # 端口释放；seemusic status 显示 STOPPED
 ```
+
+### 已知限制
+
+| 限制 | 说明 |
+|------|------|
+| 构建依赖外网 | `mvn clean package` 每次会下载 Node v20.18.0 与 npm 依赖；离线服务器需预置镜像或缓存 |
+| `nohup` + PID 非守护进程 | **不开机自启、崩溃/OOM 后不自动拉起**；需要该能力应改用 systemd unit（当前方案按轻量运维选择，不含 systemd） |
+| 端口需双重放行 | 脚本只保证本机 LISTEN；云服务器安全组/防火墙必须同步放行，改端口后要放行新端口 |
+| 视频文件不入库 | `*.mp4` 被 `.gitignore` 排除，需单独上传到 `video.storage-dir`（默认 `/opt/video`）；缺失时播放页首选源 404 并回落远程直链 |
+| JAR 体积 | 若本地 `public/media/` 存在 mp4，Vite 会复制进 `static/` 一起打包（本地曾出现 629 MB JAR）；`seemusic build` 会在 JAR 超过 100 MB 时告警 |

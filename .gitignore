@@ -28,3 +28,10 @@ Thumbs.db
 
 # Qoder Sites 部署暂存（裁剪后的静态资源 + 压缩视频 + 构建输出）
 deploy/
+
+# frontend-maven-plugin 下载的本地 Node 运行时（平台相关，不入库）
+node/
+
+# seemusic 运维脚本的运行时产物（PID、日志、端口配置）
+run/
+.seemusic.conf
