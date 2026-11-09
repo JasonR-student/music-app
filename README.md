@@ -158,7 +158,7 @@ seemusic help
 seemusic up
 ```
 
-`up` 依次执行前置检查 → `mvn clean package -DskipTests` → 校验 JAR 与 Vite 双入口产物 → 启动 → 等待首页返回 HTTP 200 → **打印实测 LISTEN 行**：
+`up` 依次执行前置检查 → `mvn clean package -DskipTests` → 校验 JAR 与 Vite 双入口产物 → 停止旧实例（若有）→ 启动 → 等待首页返回 HTTP 200 → **打印实测 LISTEN 行**：
 
 ```
 [ OK ] 启动成功
@@ -176,9 +176,9 @@ seemusic up
 
 | 命令 | 作用 |
 |------|------|
-| `seemusic up` | 一键：检查 → 构建 → 启动 → 验证 → 打印端口 |
+| `seemusic up` | 一键：检查 → 构建 → **停掉旧实例（若有）** → 启动 → 验证 → 打印端口；代码更新后用这条 |
 | `seemusic build` | 仅构建（`mvn clean package`，自动 `vite build`） |
-| `seemusic start` | 启动后台服务并验证监听 |
+| `seemusic start` | 启动后台服务并验证监听；若已运行则拒绝并提示改用 `restart` |
 | `seemusic stop` | 停止服务（SIGTERM，15 秒超时后 SIGKILL） |
 | `seemusic restart` | `stop` + `start`，读取最新端口配置 |
 | `seemusic status` | 运行状态、实测 LISTEN 行、实际端口与配置端口 |

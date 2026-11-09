@@ -100,7 +100,8 @@ is_ours() {
     *"$JAR_NAME"*) : ;;
     *) return 1 ;;
   esac
-  if [ -n "$st" ] && [ "$(proc_starttime "$p")" != "$st" ]; then
+  # starttime 为空/unknown 时降级为仅 cmdline 校验，避免 PID 文件字段错位
+  if [ -n "$st" ] && [ "$st" != "unknown" ] && [ "$(proc_starttime "$p")" != "$st" ]; then
     return 1
   fi
   return 0
@@ -355,6 +356,7 @@ cmd_start() {
   local np=$!
   local st
   st="$(proc_starttime "$np" || true)"
+  [ -n "$st" ] || st="unknown"
   printf '%s %s %s\n' "$np" "$st" "$PORT" > "$PID_FILE"
 
   wait_ready "$np" "$PORT"
@@ -476,7 +478,7 @@ seemusic — 中国民族音乐赏析 · 教学案例库 运维命令
 用法: seemusic <命令> [参数]
 
   构建与启动
-    up                 一键：前置检查 → 构建 → 启动 → 验证 → 打印实测端口
+    up                 一键：检查 → 构建 → 停旧实例(若有) → 启动 → 验证 → 打印端口
     build              仅构建（mvn clean package，自动 vite build）
     start              启动后台服务并验证监听，打印端口/PID/地址/日志
     stop               停止服务（SIGTERM，15 秒超时后 SIGKILL）
@@ -511,7 +513,17 @@ main() {
   local cmd="${1:-help}"
   shift || true
   case "$cmd" in
-    up)        cmd_build; cmd_start ;;
+    up)
+      cmd_build
+      # up 是「重新构建并启动」：若旧实例在运行，先停再起
+      local rp=""
+      rp="$(running_pid || true)"
+      if [ -n "$rp" ]; then
+        ok "检测到旧实例 (PID $rp)，up 将先停止再启动"
+        cmd_stop
+      fi
+      cmd_start
+      ;;
     build)     cmd_build ;;
     start)     cmd_start ;;
     stop)      cmd_stop ;;
