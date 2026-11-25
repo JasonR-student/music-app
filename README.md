@@ -299,6 +299,18 @@ npm run build:deploy     # 产物输出到 deploy/web/，即托管目录
 >
 > 为什么不用 GitHub Release 直链：实测（校园网）资源下载仅 9.7 KB/s 且间歇 504，响应还缺 `Access-Control-Allow-Origin`、`Content-Type` 为 `application/octet-stream`、并带 `Content-Disposition: attachment` —— 配 `crossorigin` 时必然加载失败。Release 仅作仓库备份保留。
 
+### 论坛配图与源码包直链
+
+托管站点同时充当天池论坛的公开图床与下载源（`deploy/` 已在 `.gitignore` 中，配图与 zip 不入库）：
+
+| 用途 | 直链 |
+|------|------|
+| 配图目录 | `https://yuejian-qtgst15x4qj.qoder.zone/screenshots/`（cover / home / arch / render / player / chapter / mobile / team-banner / bugs 共 9 张 PNG，实测均 200 `image/png`） |
+| 源码包 | `https://yuejian-qtgst15x4qj.qoder.zone/download/yuejian-source.zip`（4.28 MB / 43 文件，由 `git ls-files` 排除 `vibe_images/` 打包，不含 mp4 与依赖） |
+| 作品提交帖 | https://tianchi.aliyun.com/forum/post/1109453 （正文见 [FORUM_SUBMISSION.md](FORUM_SUBMISSION.md)） |
+
+帖子编辑器只认公网可访问的图片 URL，本地 `vibe_images/` 路径在论坛端无法渲染；国外图床（imgur / catbox / litterbox / telegra.ph）在本机网络下全部不可达，故统一改用站点直链。
+
 ## 配置
 
 | 配置项 | 默认值 | 说明 |

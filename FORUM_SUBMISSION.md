@@ -9,6 +9,8 @@
 > **源码下载：** https://yuejian-qtgst15x4qj.qoder.zone/download/yuejian-source.zip
 > **代码仓库：** https://github.com/JasonR-student/music-app
 
+<!-- 已发布：https://tianchi.aliyun.com/forum/post/1109453（2026-11-25 22:22 提交，关联 raceId 532536，标签 可视化/实验代码/学习心得）-->
+
 ---
 
 ## 一、作品简介
